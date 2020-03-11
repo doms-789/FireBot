@@ -1,0 +1,173 @@
+//Motor Pins
+int IN1 = 2;
+int IN2 = 3;
+int IN3 = 5;
+int IN4 = 6;
+int enA = 13;
+int enB = 12;
+
+//Proximity Sensors
+const int frontEchoPin = 9;
+const int frontTriggerPin = 8;
+const int leftEchoPin = 44;
+const int leftTriggerPin = 45;
+const int rightEchoPin = 33;
+const int rightTriggerPin = 32;
+
+volatile float frontDuration
+volatile float leftDuration
+volatile float leftDistanceCm
+volatole float rightDuration
+volatile float rightDistanceCm;
+volatile float frontDistanceCm;
+
+unsigned long then = millis();
+
+void setup()
+{
+  Serial.begin(9600);
+  
+  //motors
+  pinMode(IN1, OUTPUT);
+  pinMode(IN2, OUTPUT);
+  pinMode(IN3, OUTPUT);
+  pinMode(IN4, OUTPUT);
+  pinMode(enA, OUTPUT);
+  pinMode(enB, OUTPUT);
+  
+  //proximity sensors
+  pinMode(frontTriggerPin, OUTPUT);
+  pinMode(frontEchoPin, INPUT);
+  pinMode(leftTriggerPin, OUTPUT);
+  pinMode(leftEchoPin, INPUT);
+  pinMode(rightTriggerPin, OUTPUT);
+  pinMode(rightEchoPin, INPUT);
+}
+
+void loop() 
+{     
+    getFireData();
+    if (getFireData() == true)
+     {
+       int Main = analogRead(A0);
+       int Stopper = analogRead(A1);
+       int Left2 = analogRead(A7); 
+       int Right2 = analogRead(A15); 
+       int Left = analogRead(A6); 
+       int Right = analogRead(A14); 
+        
+       if (Main < 960)
+        {
+          MoveForward();
+          if (Stopper > 20 && Stopper < 50 )
+              Stop();
+        }
+       else if ((Left2 > 20 && Left2 < 50) || (Left > 20 && Left < 50) )
+        TurnLeft();
+       else if ((Right2 > 20 && Right2 < 50) || (Right > 20 && Right < 50) )
+        TurnRight();
+     }
+ 
+    
+    else if (getFireData() == false)
+    {
+      if (frontDistanceCm >= 35)
+        {
+         checkFrontDistance();
+         checkLeftDistance();
+         checkRightDistance();
+  
+          if (leftDistanceCm > 35 && rightDistanceCm > 35)
+            MoveForward();
+  
+          else if (leftDistanceCm <= 35)
+            TurnLeft();
+  
+          else if (rightDistanceCm <= 35)
+             TurnRight();              
+        }
+        
+      else if (frontDistanceCm < 35)
+        {
+         checkRightDistance();
+         checkLeftDistance(); 
+
+         while ( (millis()-then) < 1000)
+         {
+          if (leftDistanceCm > rightDistanceCm)
+            TurnRight();
+ 
+          else 
+            TurnLeft();            
+         }
+        }
+  }
+}
+
+bool getFireData() {
+ int Main = analogRead(A0);
+   if (Main < 960)
+     return true;
+   else 
+     return false;
+ }
+ 
+ void checkFrontDistance() {
+  digitalWrite(frontTriggerPin, LOW);  
+  digitalWrite(frontTriggerPin, HIGH);  
+  digitalWrite(frontTriggerPin, LOW);
+  frontDuration = pulseIn(frontEchoPin, HIGH); 
+  frontDistanceCm = frontDuration * 10 / 292 / 2;  
+}
+
+void checkLeftDistance() {
+  digitalWrite(leftTriggerPin, LOW); 
+  digitalWrite(leftTriggerPin, HIGH);  
+  digitalWrite(leftTriggerPin, LOW);
+  leftDuration = pulseIn(leftEchoPin, HIGH);  
+  leftDistanceCm = leftDuration * 10 / 292 / 2; 
+}
+
+void checkRightDistance() {
+  digitalWrite(rightTriggerPin, LOW);  
+  digitalWrite(rightTriggerPin, HIGH);
+  digitalWrite(rightTriggerPin, LOW);
+  rightDuration = pulseIn(rightEchoPin, HIGH);  
+  rightDistanceCm = rightDuration * 10 / 292 / 2;  
+}
+
+ void Stop() {
+    digitalWrite(IN1, LOW);
+    digitalWrite(IN2, LOW);
+    digitalWrite(IN3, LOW);
+    digitalWrite(IN4, LOW);
+ }
+
+ void MoveForward() {
+    analogWrite(enA, 125);
+    analogWrite(enB, 125);
+    digitalWrite(IN1, LOW);
+    digitalWrite(IN2, HIGH);
+    digitalWrite(IN3, LOW);
+    digitalWrite(IN4, HIGH);
+ } 
+ 
+ void TurnLeft() {
+    analogWrite(enA, 125);
+    analogWrite(enB, 125);
+    digitalWrite(IN1, LOW);
+    digitalWrite(IN2, HIGH);
+    digitalWrite(IN3, HIGH);
+    digitalWrite(IN4, LOW);
+ }
+
+ 
+ void TurnRight() {
+    analogWrite(enA, 125);
+    analogWrite(enB, 125);
+    digitalWrite(IN1, HIGH);
+    digitalWrite(IN2, LOW);
+    digitalWrite(IN3, LOW);
+    digitalWrite(IN4, HIGH);
+ }
+
