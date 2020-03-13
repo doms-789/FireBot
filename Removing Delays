@@ -47,9 +47,11 @@ void setup()
 void loop() 
 {     
     getFireData();
-    if (getFireData() == true)
+    if (getFireData() == true) 
      {
-       int Main = analogRead(A0);
+     
+      //if there is a fire, gather all fire sensor data
+       int Main = analogRead(A0); //Main sensor is able to gather analog data, all other sensors are digital
        int Stopper = analogRead(A1);
        int Left2 = analogRead(A7); 
        int Right2 = analogRead(A15); 
@@ -59,7 +61,7 @@ void loop()
        if (Main < 960)
         {
           MoveForward();
-          if (Stopper > 20 && Stopper < 50 )
+          if (Stopper > 20 && Stopper < 50 ) //once the stopper sensor is activated, the robot will stop in front of fire
               Stop();
         }
        else if ((Left2 > 20 && Left2 < 50) || (Left > 20 && Left < 50) )
@@ -77,6 +79,7 @@ void loop()
          checkLeftDistance();
          checkRightDistance();
   
+        //if there is nothing in front of the robot, and nothing near the sides, it will move forward. other wise it will adjust small left or right turns
           if (leftDistanceCm > 35 && rightDistanceCm > 35)
             MoveForward();
   
@@ -87,6 +90,8 @@ void loop()
              TurnRight();              
         }
         
+        //If there is something in the front of the robot, it will turn for 1 second. If during this turn, getFireData() becomes true,
+        // he should jump back into fire fighting mode, but this section isn't working. 
       else if (frontDistanceCm < 35)
         {
          checkRightDistance();
