@@ -90,6 +90,7 @@ void loop()
              TurnRight();              
         }
         
+        
         //If there is something in the front of the robot, it will turn for 1 second. If during this turn, getFireData() becomes true,
         // he should jump back into fire fighting mode, but this section isn't working. 
       else if (frontDistanceCm < 35)
